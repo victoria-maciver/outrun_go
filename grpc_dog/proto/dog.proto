@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package src;
+
+option go_package = "./src/pb";
+
+message Dog {
+    string id = 1;
+    string reg_name = 2;
+    string call_name = 3;
+    string gender = 4;
+}
+
+message CreateDogRequest {
+    Dog dog = 1;
+}
+
+message CreateDogResponse {
+    Dog dog = 1;
+}
+
+message GetDogRequest {
+    string dog_id = 1;
+}
+
+message GetDogResponse {
+    Dog dog = 1;
+}
+
+message UpdateDogRequest {
+    Dog dog = 1;
+}
+
+message UpdateDogResponse {
+    Dog dog = 1;
+}
+
+message DeleteDogRequest {
+    string dog_id = 1;
+}
+
+message DeleteDogResponse {
+    string dog_id = 1;
+}
+
+message ListDogRequest {
+
+}
+
+message ListDogResponse {
+    Dog dog = 1;
+}
+
+service DogService {
+    rpc CreateDog (CreateDogRequest) returns (CreateDogResponse);
+    rpc GetDog (GetDogRequest) returns (GetDogResponse);
+    rpc UpdateDog (UpdateDogRequest) returns (UpdateDogResponse);
+    rpc DeleteDog (DeleteDogRequest) returns (DeleteDogResponse);
+    rpc ListDog (ListDogRequest) returns (stream ListDogResponse);
+}
