@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/angelus_reprobi/grpc_dog/src/pb"
+	"github.com/angelus_reprobi/grpc_dog/pb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
