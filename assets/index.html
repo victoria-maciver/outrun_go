@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+ <title>Dog Database</title>
+</head>
+
+<body>
+  <h1>Dog Database</h1>
+  <table>
+    <tr>
+      <th>Registered Name</th>
+      <th>Call Name</th>
+      <th>Gender</th>
+    </tr>
+    <td>Sir Fido III</td>
+    <td>Fido</td>
+    <td>Male</td>
+    </tr>
+  </table>
+  <br/>
+
+  <form action="/dog" method="post">
+    Registered Name:
+    <input type="text" name="regName">
+    <br/> Call Name:
+    <input type="text" name="callName">
+    <br/>Gender:
+    <input type="text" name="gender">
+    <br/>
+    <input type="submit" value="Submit">
+  </form>
+
+  <script>
+    dogTable = document.querySelector("table")
+
+    fetch("/dogs")
+      .then(response => response.json())
+      .then(dogList => {
+        dogList.forEach(dog => {
+          row = document.createElement("tr")
+
+          species = document.createElement("td")
+          species.innerHTML = dog.regName
+          description = document.createElement("td")
+          description.innerHTML = dog.callName
+          description = document.createElement("td")
+          description.innerHTML = dog.gender
+
+          row.appendChild(regName)
+          row.appendChild(callName)
+          row.appendChild(gender)
+          dogTable.appendChild(row)
+        })
+      })
+  </script>
+</body>

@@ -21,8 +21,8 @@ import (
 
 var collection *mongo.Collection
 
-type server struct {
-	pb.DogServiceServer
+type DogServer struct {
+	pb.UnimplementedDogServiceServer
 }
 
 type dogData struct {
@@ -32,7 +32,7 @@ type dogData struct {
 	Gender   string             `bson:"gender"`
 }
 
-func (*server) CreateDog(ctx context.Context, req *pb.CreateDogRequest) (*pb.CreateDogResponse, error) {
+func (*DogServer) CreateDog(ctx context.Context, req *pb.CreateDogRequest) (*pb.CreateDogResponse, error) {
 	dog := req.GetDog()
 
 	data := dogData{
@@ -66,7 +66,7 @@ func (*server) CreateDog(ctx context.Context, req *pb.CreateDogRequest) (*pb.Cre
 	}, nil
 }
 
-func (*server) GetDog(ctx context.Context, req *pb.GetDogRequest) (*pb.GetDogResponse, error) {
+func (*DogServer) GetDog(ctx context.Context, req *pb.GetDogRequest) (*pb.GetDogResponse, error) {
 	dogId := req.GetDogId()
 	oid, err := primitive.ObjectIDFromHex(dogId)
 	if err != nil {
@@ -92,7 +92,7 @@ func (*server) GetDog(ctx context.Context, req *pb.GetDogRequest) (*pb.GetDogRes
 	}, nil
 }
 
-func (*server) UpdateDog(ctx context.Context, req *pb.UpdateDogRequest) (*pb.UpdateDogResponse, error) {
+func (*DogServer) UpdateDog(ctx context.Context, req *pb.UpdateDogRequest) (*pb.UpdateDogResponse, error) {
 	dog := req.GetDog()
 	oid, err := primitive.ObjectIDFromHex(dog.GetId())
 	if err != nil {
@@ -130,7 +130,7 @@ func (*server) UpdateDog(ctx context.Context, req *pb.UpdateDogRequest) (*pb.Upd
 	}, nil
 }
 
-func (*server) ListDog(_ *pb.ListDogRequest, stream pb.DogService_ListDogServer) error {
+func (*DogServer) ListDog(_ *pb.ListDogRequest, stream pb.DogService_ListDogServer) error {
 	cur, err := collection.Find(context.Background(), primitive.D{{}})
 	if err != nil {
 		return status.Errorf(
@@ -160,6 +160,11 @@ func (*server) ListDog(_ *pb.ListDogRequest, stream pb.DogService_ListDogServer)
 }
 
 func main() {
+	lis, client, server := initConnections()
+	closeConnections(lis, client, server)
+}
+
+func initConnections() (net.Listener, *mongo.Client, *grpc.Server) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	client, err := connectToMongoDB()
@@ -178,7 +183,7 @@ func main() {
 
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
-	pb.RegisterDogServiceServer(s, &server{})
+	pb.RegisterDogServiceServer(s, &DogServer{})
 
 	reflection.Register(s)
 
@@ -194,6 +199,10 @@ func main() {
 
 	<-ch
 
+	return lis, client, s
+}
+
+func closeConnections(lis net.Listener, client *mongo.Client, s *grpc.Server) {
 	fmt.Println("Stopping the listener")
 	lis.Close()
 	fmt.Println("Closing mongodb connection")
