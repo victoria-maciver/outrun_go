@@ -24,7 +24,7 @@ func TestHandler(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	expected := helloWorld
+	expected := HelloWorld
 	actual := recorder.Body.String()
 	if actual != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v", actual, expected)
@@ -34,7 +34,7 @@ func TestHandler(t *testing.T) {
 func TestRouter(t *testing.T) {
 	r := newRouter()
 	mockServer := httptest.NewServer(r)
-	resp, err := http.Get(mockServer.URL + helloWorldEndpoint)
+	resp, err := http.Get(mockServer.URL + HelloWorldEndpoint)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestRouter(t *testing.T) {
 	}
 
 	respString := string(b)
-	expected := helloWorld
+	expected := HelloWorld
 
 	if respString != expected {
 		t.Errorf("Response should be %v, got %v", expected, respString)
@@ -56,7 +56,7 @@ func TestRouter(t *testing.T) {
 func TestRouterForNonExistentRoute(t *testing.T) {
 	r := newRouter()
 	mockServer := httptest.NewServer(r)
-	resp, err := http.Post(mockServer.URL+helloWorldEndpoint, "", nil)
+	resp, err := http.Post(mockServer.URL+HelloWorldEndpoint, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,5 +75,28 @@ func TestRouterForNonExistentRoute(t *testing.T) {
 
 	if respString != expected {
 		t.Errorf("Response should be %s, got %s", expected, respString)
+	}
+}
+
+func TestStaticFileServer(t *testing.T) {
+	r := newRouter()
+	mockServer := httptest.NewServer(r)
+
+	lolurl := mockServer.URL + AssetsPath
+
+	resp, err := http.Get(lolurl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Status should be 200, got %d", resp.StatusCode)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	expectedContentType := "text/html; charset=utf-8"
+
+	if expectedContentType != contentType {
+		t.Errorf("Wrong content type, expected %s, got %s", expectedContentType, contentType)
 	}
 }
