@@ -1,22 +1,29 @@
 version: "3.9"
 
 services:
-  http:
-    build:
-      context: .
-      dockerfile: http/Dockerfile
-    volumes:
-      - .:/opt/app/http
-    container_name: http
-
   server:
     build:
       context: .
       dockerfile: transport/server/Dockerfile
     container_name: server
+    ports:
+      - "50051:50051"
+    depends_on:
+      - mongo
+    
+  http:
+    build:
+      context: .
+      dockerfile: http/Dockerfile
+    container_name: http
+    ports:
+      - "8080:8080"
+    depends_on:
+      - server
     
   mongo:
     image: mongo:latest
+    container_name: mongo
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongoadmin
       - MONGO_INITDB_ROOT_PASSWORD=password

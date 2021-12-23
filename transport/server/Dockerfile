@@ -13,5 +13,6 @@ RUN go mod download && go mod verify
 COPY . .
 
 RUN go build
+EXPOSE 50051
 
 CMD ["go", "run", "."]

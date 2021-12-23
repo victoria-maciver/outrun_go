@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/angelus_reprobi/grpc_dog/pb"
-	"google.golang.org/grpc"
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 )
 
@@ -32,25 +29,10 @@ func newRouter() *mux.Router {
 	return r
 }
 
-func newClient() pb.DogServiceClient {
-	fmt.Println("Conecting to GRPC client")
-	opts := grpc.WithInsecure()
-	cc, err := grpc.Dial("localhost:50051", opts)
-	if err != nil {
-		log.Fatalf("could not connect: %v", err)
-	}
-	defer cc.Close()
-
-	return pb.NewDogServiceClient(cc)
-}
-
 func main() {
 	router := newRouter()
+	fmt.Printf("Listening on port %v", ListenPort)
 	http.ListenAndServe(ListenPort, router)
-
-	newClient()
-	fmt.Println("HTTP server running")
-	// client := newClient()
 }
 
 func helloWorldHandler(w http.ResponseWriter, r *http.Request) {

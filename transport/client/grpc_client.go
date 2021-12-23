@@ -2,38 +2,49 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"log"
+	"sync"
 
 	"github.com/angelus_reprobi/grpc_dog/pb"
 	"google.golang.org/grpc"
 )
 
-type GrpcHandler struct {
+type Client struct {
 	client pb.DogServiceClient
 }
 
-func New() *GrpcHandler {
-	opts := grpc.WithInsecure()
-	cc, err := grpc.Dial("localhost:50051", opts)
-	if err != nil {
-		log.Fatalf("could not connect: %v", err)
-	}
-	defer cc.Close()
+var (
+	srv  *Client
+	once sync.Once
+)
 
-	c := pb.NewDogServiceClient(cc)
-	return &GrpcHandler{c}
+func NewClient() (*Client, error) {
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	once.Do(func() {
+		opts := grpc.WithInsecure()
+		conn, err = grpc.Dial("0.0.0.0:50051", opts)
+		client := pb.NewDogServiceClient(conn)
+
+		if err == nil {
+			srv = &Client{client}
+		}
+	})
+	return srv, err
 }
 
-func (h *GrpcHandler) ListDogs() []pb.Dog {
+func (obj *Client) ListDogs() ([]pb.Dog, error) {
 	var dogs []pb.Dog
 
-	stream, err := h.client.ListDog(
+	stream, grpcError := obj.client.ListDog(
 		context.Background(),
 		&pb.ListDogRequest{},
 	)
-	if err != nil {
-		log.Fatalf("error while calling ListDog RPC: %v", err)
+	if grpcError != nil {
+		return nil, fmt.Errorf("failed to call rpc ListDog : %s", grpcError.Error())
 	}
 
 	for {
@@ -42,10 +53,10 @@ func (h *GrpcHandler) ListDogs() []pb.Dog {
 			break
 		}
 		if err != nil {
-			log.Fatalf("Something happened: %v", err)
+			return nil, fmt.Errorf("failed to process received stream of rpc ListDog : %s", err.Error())
 		}
 		dogs = append(dogs, *res.GetDog())
 	}
 
-	return dogs
+	return dogs, nil
 }
